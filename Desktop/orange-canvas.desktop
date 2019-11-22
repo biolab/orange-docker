@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Orange Data Mining
+GenericName=Data Mining Suite
+Comment=Explore, analyze, and visualize your data
+Exec=/home/orange/.conda/envs/orange3/bin/orange-canvas
+Icon=/home/orange/.conda/share/orange3/orange.png
+Terminal=false
+MimeType=application/x-extension-ows;
+Categories=Science;Education;ArtificialIntelligence;DataVisualization;NumericalAnalysis;Qt;
+Keywords=Machine Learning;Scientific Visualization;Statistical Analysis;
