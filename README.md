@@ -3,9 +3,9 @@
 Docker image for Orange Data Mining Suite.
 
 You can run Orange in docker containers on server infrastructure. Key benefits of this approach are:
-- Orange can have access to greater amount of memory and processing power
-- It can be accessible from anywhere and can be run for extended time without interruptions
-- Existing workflows can be shared with other people in real time
+- Orange can have access to a greater amount of memory and processing power
+- It can be accessed from anywhere and can be run for an extended time without interruptions
+- Existing workflows can be shared with other people in real-time
 
 We use the following technologies:
 - Docker containers
@@ -14,14 +14,14 @@ We use the following technologies:
 
 ### Setup guide ###
 
-First ensure that you have a docker installed. The following guide 
+First, ensure that you have a docker installed. The following guide 
 contains instructions for ubuntu platform: [instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce).
 
 If you want to deploy a new system, follow this guide to create a basic 
 guacamole setup using official dockers: [setup guide](https://www.linode.com/docs/guides/installing-apache-guacamole-through-docker/)
 
-After that, create common network and storage volume and attach each of the 
-instances to the network and storage.
+After that, create a common network and attach each of the 
+instances to the network.
 
 ```sh
     docker network create guacamole
@@ -35,7 +35,7 @@ instances to the network and storage.
 When you have a working guacamole environment, you can use this command to spawn 
 additional Orange remote desktop instances. 
 
-You can use the same command multiple times to create multiple remote desktop enviroments. Note that tag is the same as the hostname 
+You can use the same command multiple times to create multiple remote desktop environments. Note that the tag is the same as the hostname 
 in the web interface and needs to be unique.
 
 
@@ -44,7 +44,7 @@ in the web interface and needs to be unique.
     docker run --name $tag --link example-guacd:guacd --network=guacamole -d orangedm/orange-docker-vnc:v1.0
 ```
 
-Change the user password and VNC password withing container. 
+Change the user password and VNC password within the container. 
 ```sh
     docker exec -it $tag /bin/bash
     passwd orange  # changes orange user password
@@ -53,12 +53,12 @@ Change the user password and VNC password withing container.
 
 ### Create connection ###
 
-Admins must create new connections for each image via Settings -> Connections menu. 
+Admins must create new connections for each Orange image via Settings -> Connections menu. 
 Guacamole website contains [a detailed guide on Guacamole administration](https://guacamole.apache.org/doc/gug/administration.html).
 
-In the browser open localhost:<port>/guacamole, where the port is the value that you see PORTS section for guacamole container if you run  `docker ps`.
+In the browser, open localhost:<port>/guacamole, where the port is the value that you see PORTS section for guacamole container if you run  `docker ps`. 
 
-The first time you login with the default user `guacadmin` and password `guacadmin`. Do not forget to change it.
+The first time you log in with the default user `guacadmin` and password `guacadmin`. Do not forget to change it.
 
 Open Settings > Connections, and click on New connection.
 
@@ -72,15 +72,17 @@ In general, at least these values need to be configured:
 - `Parameters -> Authentication -> Username`: orange
 - `Parameters -> Authentication -> Password`: <vnc password assinged in the previous section>
 
+When a new connection is created, check that it is working by clicking on it from the guacamole home screen.
+
 ### Sharing screen ###
 
 Go to `Settings -> Connections`.
 
 Click on the [+] sign left of the desktop you want to share with one-time 
-link. If there exists a Sharing profile for this desktop you can skip this 
-step. Otherwise click on the `New sharing profile`. Name the profile and check `Read only` if you want to restrict users to view only experience.
+link. If there exists a Sharing profile for this desktop, you can skip this 
+step. Otherwise, click on the `New sharing profile`. Name the profile and check `Read only` if you want to restrict users to view only experience.
 
-Click save. Now share button should be available from the Ctrl+Alt+Shift menu (when connected to the virtual machine).
+Click Save. Now share button should be available from the Ctrl+Alt+Shift menu (when connected to the virtual machine).
 
 ### Stop instances ###
 
