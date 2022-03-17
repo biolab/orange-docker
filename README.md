@@ -15,12 +15,10 @@ We use the following technologies:
 ### Setup guide ###
 
 First ensure that you have a docker installed. The following guide 
-contains instructions for ubuntu platform:
-- [docker](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce)
+contains instructions for ubuntu platform: [instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce).
 
 If you want to deploy a new system, follow this guide to create a basic 
-guacamole setup using official dockers:
-- [setup guide](https://www.linode.com/docs/applications/remote-desktop/remote-desktop-using-apache-guacamole-on-docker/)
+guacamole setup using official dockers: [setup guide](https://www.linode.com/docs/guides/installing-apache-guacamole-through-docker/)
 
 After that, create common network and storage volume and attach each of the 
 instances to the network and storage.
@@ -32,89 +30,57 @@ instances to the network and storage.
     docker network connect guacamole example-guacamole
 ```
 
-Shared volume is used to transfer data. To enable this feature, create the 
-volume first and then attach it to example-guacamole container.
-
-```sh
-    docker volume create guacamole_share1
-```
-
 ### Start docker container ###
 
-If you have a working guacamole environment, you can use this command to spawn 
-additional remote desktop instances. Note that tag is the same as the hostname 
+When you have a working guacamole environment, you can use this command to spawn 
+additional Orange remote desktop instances. 
+
+You can use the same command multiple times to create multiple remote desktop enviroments. Note that tag is the same as the hostname 
 in the web interface and needs to be unique.
 
 
 ```sh
     tag=orange1
-    docker run --rm -d -h $tag --name=$tag --network=guacamole -v guacamole_share1:/home/orange/share -it orangedm/orange-xrdp
+    docker run --name $tag --link example-guacd:guacd --network=guacamole -d orangedm/orange-docker-vnc:v1.0
 ```
 
-Change the password within the container. 
+Change the user password and VNC password withing container. 
 ```sh
-    docker exec -it orange1 /bin/bash
-    passwd orange
+    docker exec -it $tag /bin/bash
+    passwd orange  # changes orange user password
+    vncpasswd  # changes password for vnc
 ```
 
 ### Create connection ###
 
-Admins can create new connections via Settings -> Connections menu. 
-Guacamole website contains a detailed guide on this:
-- [Guacamole administration](https://guacamole.apache.org/doc/gug/administration.html).
+Admins must create new connections for each image via Settings -> Connections menu. 
+Guacamole website contains [a detailed guide on Guacamole administration](https://guacamole.apache.org/doc/gug/administration.html).
+
+In the browser open localhost:<port>/guacamole, where the port is the value that you see PORTS section for guacamole container if you run  `docker ps`.
+
+The first time you login with the default user `guacadmin` and password `guacadmin`. Do not forget to change it.
+
+Open Settings > Connections, and click on New connection.
 
 In general, at least these values need to be configured:
-- Edit connections -> name: Can be anything, this will be shown on the home dashboard
-- Edit connections -> protocol: RDP (if you use orangedm/orange-xrdp image)
-- Concurrency limits (both): Default is 1, set this to higher value if you want to share connections with multiple users.
-- Parameters -> Network -> hostname: This equals to the $tag variable when creating instance or docker name. 
-- Parameters -> Authentication -> Username: orange
-- Parameters -> Authentication -> Username: password # use password you set in the previous section
-
-If you want to enable file transfers you need to also configure the following fields:
-- Device redirection -> Enable drive
-- Device redirection -> Drive name
-- Device redirection -> Drive path
-- Device redirection -> Automatically create drive (optional)
-
-Drive path should be different for each container and is the path 
-to where docker volume is mounted in example-guacamole container. 
-Make sure the drive is mounted correctly:
-
-```sh
-    docker exec -it example-guacamole /bin/bash
-    mount
-```
-
-Click on the create connection button. The connection is created and you 
-should be able to see it in the main dashboard. You can restrict/allow access 
-to individual users in the “Users” tab.
+- `Edit connections -> name`: Can be anything, this will be shown on the home dashboard
+- `Edit connections -> name`: ROOT
+- `Edit connections -> protocol`: VNC
+- `Concurrency limits (both)`: Default is 1, set this to higher value if you want to share connections with multiple users.
+- `Parameters -> Network -> hostname`: This equals to the $tag variable when creating instance or docker name. 
+- `Parameters -> Network -> port`: 5901
+- `Parameters -> Authentication -> Username`: orange
+- `Parameters -> Authentication -> Password`: <vnc password assinged in the previous section>
 
 ### Sharing screen ###
 
-Go to Settings -> Connections.
+Go to `Settings -> Connections`.
 
 Click on the [+] sign left of the desktop you want to share with one-time 
 link. If there exists a Sharing profile for this desktop you can skip this 
-step. Otherwise click on the “New sharing profile”. Check “Read only” if 
-you want to restrict users to view only experience.
+step. Otherwise click on the `New sharing profile`. Name the profile and check `Read only` if you want to restrict users to view only experience.
 
-Click save. Now share button should be available from the Ctrl+Alt+Shift menu.
-
-### File transfer ###
-
-If you have enabled file sharing, you can upload and download the files via the 
-side panel. To transfer files to the remote server, open the side menu (Ctrl+Alt+Shift) 
-and click Shared drive button. You will see a list of files. You can either 
-click “Upload file” button at the top and choose a file from the local computer 
-or drag&drop the files into browser tab.
-
-After the upload is completed, double click on the “File Manager” icon on the 
-desktop to re-open the share folder. File manager was configured to reset file 
-ownership when opened. Otherwise you will may to set the permissions manually. 
-
-Files are now located within the container in ~/share and you can access them 
-from Orange application.
+Click save. Now share button should be available from the Ctrl+Alt+Shift menu (when connected to the virtual machine).
 
 ### Stop instances ###
 
