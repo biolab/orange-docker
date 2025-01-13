@@ -2,6 +2,7 @@ FROM continuumio/miniconda3
 
 WORKDIR /app
 
+# install dependencies and missing packages (libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-render-util0) for Orange3
 RUN apt-get update && apt-get install -y \
     xvfb \
     x11vnc \
@@ -15,16 +16,13 @@ RUN apt-get update && apt-get install -y \
     libxcb-render-util0 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create the environment:
+# install Orange
 RUN conda create python=3.10 --yes --name orange3
-
-#RUN echo "conda activate orange3" >> ~/.bashrc
 RUN conda init bash
 RUN bash -c "source activate base && conda activate orange3"
 ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 RUN conda install orange3 --yes
 
-# Set environment variables for VNC
 ENV DISPLAY=:0
 EXPOSE 6080
 
