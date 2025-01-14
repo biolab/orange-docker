@@ -8,7 +8,8 @@ fluxbox -display :0 &
 
 # create password and start x11vnc
 mkdir -p ~/.vnc
-x11vnc -storepasswd "$1" ~/.vnc/passwd
+x11vnc -storepasswd "$(cat /secret.txt)" ~/.vnc/passwd
+rm /secret.txt
 x11vnc -display :0 -bg -forever -usepw -localhost -xkb -rfbport 5900 &
 
 # generate self-signed certificate for SSL/TLS encryption
