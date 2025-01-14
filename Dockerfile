@@ -29,5 +29,9 @@ EXPOSE 6080
 COPY init.sh init.sh
 RUN chmod +x init.sh
 
+RUN --mount=type=secret,id=noVNC_password \
+    NOVNC_PASSWORD=$(cat /run/secrets/noVNC_password) && \
+    echo ${NOVNC_PASSWORD} >> /secret.txt
+
 # run the application
 ENTRYPOINT ["./init.sh"]
