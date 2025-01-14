@@ -2,7 +2,6 @@
 Replace "pass" with your password.
 ```
 export NOVNC_PASSWORD=pass; docker build --secret id=noVNC_password,env=NOVNC_PASSWORD  -t orangedocker:latest . 
-docker build -t orangedocker:latest .
 ```
 
 ```
