@@ -31,7 +31,8 @@ RUN chmod +x init.sh
 
 RUN --mount=type=secret,id=noVNC_password \
     NOVNC_PASSWORD=$(cat /run/secrets/noVNC_password) && \
-    echo ${NOVNC_PASSWORD} >> /secret.txt
+    mkdir -p ~/.vnc && \
+    x11vnc -storepasswd ${NOVNC_PASSWORD} ~/.vnc/passwd
 
 # run the application
 ENTRYPOINT ["./init.sh"]
