@@ -2,6 +2,7 @@
 
 # start Xvfb
 /usr/bin/Xvfb :0 -screen 0 1280x720x16 &
+sleep 0.1
 
 # start fluxbox
 fluxbox -display :0 &
