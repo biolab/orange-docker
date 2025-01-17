@@ -7,8 +7,6 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     x11vnc \
     novnc \
-    xauth \
-    xorg \
     fluxbox \
     libxcb-icccm4 \
     libxcb-image0 \
@@ -22,6 +20,7 @@ RUN conda init bash
 RUN bash -c "source activate base && conda activate orange3"
 ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 RUN conda install orange3 --yes
+#RUN /opt/conda/envs/orange3/bin/pip install psycopg2-binary
 
 ENV DISPLAY=:0
 EXPOSE 6080
