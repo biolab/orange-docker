@@ -20,4 +20,4 @@ openssl req -new -x509 -days 365 -nodes -out self.pem -keyout self.pem -subj "/C
 QT_AUTO_SCREEN_SCALE_FACTOR=0 orange-canvas --no-splash --no-welcome &
 
 # keep the container running even through restarts of Orange
-while :; do sleep 1; done
+sleep infinity
