@@ -17,9 +17,8 @@ RUN conda create python=3.10 --yes --name orange3
 RUN conda init bash
 RUN bash -c "source activate base && conda activate orange3"
 ENV PATH=/opt/conda/envs/orange3/bin:$PATH
-RUN conda install orange3 --yes
-RUN /opt/conda/envs/orange3/bin/pip install psycopg2-binary 
-RUN conda clean --all --yes
+RUN conda install orange3 --yes && conda clean --all --yes
+RUN /opt/conda/envs/orange3/bin/pip install psycopg2-binary
 
 ENV DISPLAY=:0
 EXPOSE 6080
