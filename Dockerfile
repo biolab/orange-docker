@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # install Orange
-RUN conda config --add channels conda-forge
-RUN conda config --set channel_priority strict
-RUN conda create python=3.10 --yes --name orange3
-RUN conda init bash
-RUN bash -c "source activate base && conda activate orange3"
+RUN conda config --add channels conda-forge && \
+    conda config --set channel_priority strict && \
+    conda create python=3.10 --yes --name orange3 && \
+    conda init bash && \
+    bash -c "source activate base && conda activate orange3" && \
+    conda install orange3 --yes && conda clean --all --yes
+    
 ENV PATH=/opt/conda/envs/orange3/bin:$PATH
-RUN conda install orange3 --yes && conda clean --all --yes
-RUN /opt/conda/envs/orange3/bin/pip install psycopg2-binary
 
 ENV DISPLAY=:0
 EXPOSE 6080
