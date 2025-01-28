@@ -1,0 +1,19 @@
+name: Docker Image CI
+on:
+ workflow_dispatch:
+   inputs:
+    version:
+       description: 'version'
+       required: true
+       default: 'latest'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orangedocker:${{ github.event.inputs.version }} .
+      env:
+        NOVNC_PASSWORD: ${{ secrets.NOVNC_PASSWORD }}
