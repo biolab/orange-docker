@@ -6,14 +6,21 @@ on:
        description: 'version'
        required: true
        default: 'latest'
+       
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
+      
+    - name: Login to GitHub Container Registry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io --username ${{ github.actor }} --password-stdin
+      
     - name: Build Docker image
       run: docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orangedocker:${{ github.event.inputs.version }} .
       env:
         NOVNC_PASSWORD: ${{ secrets.NOVNC_PASSWORD }}
+    
+    - name: Push Docker image to GHCR
+      run: docker push ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.version }}
