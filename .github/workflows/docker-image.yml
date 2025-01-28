@@ -18,7 +18,7 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io --username ${{ github.actor }} --password-stdin
       
     - name: Build Docker image
-      run: docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orangedocker:${{ github.event.inputs.version }} .
+      run: docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.version }} .
       env:
         NOVNC_PASSWORD: ${{ secrets.NOVNC_PASSWORD }}
     
