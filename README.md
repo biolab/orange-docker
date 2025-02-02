@@ -6,9 +6,17 @@ docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orangedocker:lates
 ```
 
 ```
-docker run --init -d --rm -p 6080:6080 orangedocker
+docker run --init -d --rm -p 6080:6080 -v {path_to_data_folder_on_host}:/data orangedocker
 ```
 
 Navigate to `https://localhost:6080/vnc.html` or `https://{host_ip}:6080/vnc.html` if on the same network. Certificates for SSL/TLS encryption are currently self-signed which means the browser will not allow connections by default without you clicking through and accepting the warning pop-up.
 
-Once on the noVNC homepage click connect and input your password. On the left are also some useful settings such as "Local Scaling" to make the screen fit your browser.
+Once on the noVNC homepage click connect and input your password. On the left are also some useful settings such as "Remote Resizing" which makes the resolution match your browser.
+
+# How to import and export data
+The `docker run` command in the example creates a volume mount between data stored in your specified path `{path_to_data_folder_on_host}` and `/data/` inside the container. Data stored inside the container's `/data/` folder will persist on host folder after stopping the container.
+
+If exporting resulting data to host is not needed and you wish to burn import data into the image at build, you can do so by creating a `data/` folder in the same folder as `Dockerfile` and using `docker run` command without creating a volume mount.
+```
+docker run --init -d --rm -p 6080:6080 orangedocker
+```
