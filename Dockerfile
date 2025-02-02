@@ -4,7 +4,7 @@ WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# install TigerVNC server and fluxbox for GUI
+# install TigerVNC server and fluxbox
 RUN apt-get update && apt-get install -y \
     tigervnc-standalone-server \
     fluxbox \
@@ -17,7 +17,7 @@ RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v1.5.0.zip && \
     rm v1.5.0.zip && \
     apt-get purge -y unzip && apt-get autoremove -y
 
- # install Orange
+# install Orange
 RUN conda create python=3.10 --yes --name orange3 && \
     conda init bash && \
     bash -c "source activate base && conda activate orange3" && \
@@ -28,9 +28,14 @@ ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 ENV DISPLAY=:0
 EXPOSE 6080
 
-COPY init.sh init.sh
+# copy the data if it exists
+COPY ./dat[a]/ /data/
+
+# copy the init script
+COPY init.sh ./init.sh
 RUN chmod +x init.sh
 
+# create the password file for VNC server
 RUN --mount=type=secret,id=noVNC_password \
     mkdir -p ~/.vnc && \
     cat /run/secrets/noVNC_password | vncpasswd -f > ~/.vnc/passwd && \
