@@ -16,7 +16,6 @@ Once on the noVNC homepage click connect and input your password. On the left ar
 The VNC server allows only one connection at a time by default. To allow multiple simultaneous connections pass `-e SHARED=1` to `docker run`.
 ```
 docker run --init -d --rm -p 6080:6080 -v {path_to_data_folder_on_host}:/data -e SHARED=1 orangedocker
-
 ``` 
 
 # How to import and export data
