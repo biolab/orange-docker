@@ -27,6 +27,7 @@ ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 
 ENV DISPLAY=:0
 EXPOSE 6080
+ENV SHARED=0
 
 # copy the data if it exists
 COPY ./dat[a]/ /data/

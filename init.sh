@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # start TigerVNC server (also creates a virtual display and starts Fluxbox window manager)
-vncserver :0 -geometry 1920x1080 -depth 24 -localhost -nolisten tcp -rfbport 5900
+vncserver :0 -geometry 1920x1080 -depth 24 -localhost -nolisten tcp -rfbport 5900 --disconnectClients=0 --neverShared="$(( ${SHARED} ^ 1 ))"
 
 # generate self-signed certificate for SSL/TLS encryption
 openssl req -new -x509 -days 365 -nodes -out self.pem -keyout self.pem -subj "/C=US/ST=/L=/O=/CN="
