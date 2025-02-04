@@ -21,7 +21,7 @@ RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v1.5.0.zip && \
 RUN conda create python=3.10 --yes --name orange3 && \
     conda init bash && \
     bash -c "source activate base && conda activate orange3" && \
-    conda install orange3 --yes && conda clean -afy
+    conda install orange3 "catboost=*=*cpu*" --yes && conda clean -afy
     
 ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 
