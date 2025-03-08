@@ -3,9 +3,8 @@ on:
  workflow_dispatch:
    inputs:
       image_tag:
-        description: "Docker image tag"
+        description: "Docker image tag (e.g. latest, v1.2.3)"
         required: true
-        default: latest
       miniforge_version:
         description: "Miniforge version"
         required: false
