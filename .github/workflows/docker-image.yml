@@ -2,10 +2,31 @@ name: Docker Image CI
 on:
  workflow_dispatch:
    inputs:
-    version:
-       description: 'version'
-       required: true
-       default: 'latest'
+      image_tag:
+        description: "Docker image tag"
+        required: true
+        default: latest
+      miniforge_version:
+        description: "Miniforge version"
+        required: false
+      tigervnc_version:
+        description: "TigerVNC version"
+        required: false
+      fluxbox_version:
+        description: "Fluxbox version"
+        required: false
+      unzip_version:
+        description: "Unzip version"
+        required: false
+      novnc_version:
+        description: "noVNC version"
+        required: false
+      orange3_version:
+        description: "Orange3 version"
+        required: false
+      python_version:
+        description: "Python version"
+        required: false
        
 jobs:
   build:
@@ -17,14 +38,27 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Set build args
+      id: build-args
+      run: |
+        ARGS=""
+        if [[ "${{ github.event.inputs.miniforge_version }}" ]]; then ARGS="$ARGS --build-arg MINIFORGE_VERSION=${{ github.event.inputs.miniforge_version }}"; fi
+        if [[ "${{ github.event.inputs.tigervnc_version }}" ]]; then ARGS="$ARGS --build-arg TIGERVNC_VERSION=${{ github.event.inputs.tigervnc_version }}"; fi
+        if [[ "${{ github.event.inputs.fluxbox_version }}" ]]; then ARGS="$ARGS --build-arg FLUXBOX_VERSION=${{ github.event.inputs.fluxbox_version }}"; fi
+        if [[ "${{ github.event.inputs.unzip_version }}" ]]; then ARGS="$ARGS --build-arg UNZIP_VERSION=${{ github.event.inputs.unzip_version }}"; fi
+        if [[ "${{ github.event.inputs.novnc_version }}" ]]; then ARGS="$ARGS --build-arg NOVNC_VERSION=${{ github.event.inputs.novnc_version }}"; fi
+        if [[ "${{ github.event.inputs.orange3_version }}" ]]; then ARGS="$ARGS --build-arg ORANGE3_VERSION=${{ github.event.inputs.orange3_version }}"; fi
+        if [[ "${{ github.event.inputs.python_version }}" ]]; then ARGS="$ARGS --build-arg PYTHON_VERSION=${{ github.event.inputs.python_version }}"; fi
+        echo "ARGS=$ARGS" >> $GITHUB_ENV
       
     - name: Login to GitHub Container Registry
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io --username ${{ github.actor }} --password-stdin
       
     - name: Build Docker image
-      run: docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.version }} .
+      run: docker build ${{ env.ARGS }} --secret id=noVNC_password,env=NOVNC_PASSWORD -t ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.image_tag }} .
       env:
         NOVNC_PASSWORD: ${{ secrets.NOVNC_PASSWORD }}
     
     - name: Push Docker image to GHCR
-      run: docker push ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.version }}
+      run: docker push ghcr.io/${{ github.repository_owner }}/orangedocker:${{ github.event.inputs.image_tag }}
