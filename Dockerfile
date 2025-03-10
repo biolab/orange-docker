@@ -8,6 +8,7 @@ ARG UNZIP_VERSION=6.0-25ubuntu1.1
 ARG NOVNC_VERSION=1.5.0
 ARG ORANGE3_VERSION=3.38.1
 ARG PYTHON_VERSION=3.10
+ARG BUILD_DATE_TIME
 
 WORKDIR /app
 
@@ -52,6 +53,13 @@ RUN --mount=type=secret,id=noVNC_password \
     mkdir -p ~/.vnc && \
     cat /run/secrets/noVNC_password | vncpasswd -f > ~/.vnc/passwd && \
     chmod 600 ~/.vnc/passwd
+
+LABEL org.opencontainers.image.title="OrangeDocker - VNC Server Docker Image" \
+    org.opencontainers.image.description="A Docker image that sets up a VNC server accessible via a web browser, allowing remote desktop access. It supports password protection, volume mounting for data persistence, and options for multiple simultaneous connections." \
+    org.opencontainers.image.authors="Bioinformatics Laboratory, FRI UL" \
+    org.opencontainers.image.version=${ORANGE3_VERSION} \
+    org.opencontainers.image.created=${BUILD_DATE_TIME} \
+    org.opencontainers.image.source="https://github.com/biolab/orange-docker"
 
 # run the application
 ENTRYPOINT ["./init.sh"]
