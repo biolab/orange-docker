@@ -41,7 +41,7 @@ jobs:
     - name: Set build args
       id: build-args
       run: |
-        ARGS="--build-arg BUILD_DATE_TIME=$(date -u --rfc-3339=seconds)"
+        ARGS="--build-arg BUILD_DATE_TIME=\"$(date -u --rfc-3339=seconds)\""
         if [[ "${{ github.event.inputs.miniforge_version }}" ]]; then ARGS="$ARGS --build-arg MINIFORGE_VERSION=${{ github.event.inputs.miniforge_version }}"; fi
         if [[ "${{ github.event.inputs.tigervnc_version }}" ]]; then ARGS="$ARGS --build-arg TIGERVNC_VERSION=${{ github.event.inputs.tigervnc_version }}"; fi
         if [[ "${{ github.event.inputs.fluxbox_version }}" ]]; then ARGS="$ARGS --build-arg FLUXBOX_VERSION=${{ github.event.inputs.fluxbox_version }}"; fi
