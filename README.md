@@ -2,7 +2,7 @@
 Replace "pass" with your password.
 ```
 export NOVNC_PASSWORD=pass
-docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orangedocker:latest . 
+docker build --secret id=noVNC_password,env=NOVNC_PASSWORD  --build-arg BUILD_DATE_TIME="$(date -u --rfc-3339=seconds)" -t orangedocker:latest . 
 ```
 
 ```
