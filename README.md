@@ -9,6 +9,7 @@ docker run --init -d --rm -p 6080:6080 -v {path_to_data_folder_on_host}:/data -e
 A downside to this approach is that the VNC server's password is created at build time and is set to default value `pass`. To use a different password, build the image yourself or fork this repository, set a new repository secret `NOVNC_PASSWORD` in `https://github.com/{repository_owner}/orange-docker/settings/secrets/actions` and generate a new image through Github Actions. Your image will be available on `ghcr.io/{repository_owner}/orange-docker`.
 
 It is also possible to customize combinations of package versions installed inside container by setting these repository variables (if they are not set it will simply default to versions specified in the Dockerfile):
+- `MINIFORGE_VERSION`
 - `TIGERVNC_VERSION`
 - `FLUXBOX_VERSION`
 - `UNZIP_VERSION`
