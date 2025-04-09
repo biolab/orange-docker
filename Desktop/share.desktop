@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=File Manager
-GenericName=File Manager
-Exec=/bin/bash -c "sudo chown -R orange:orange -R /home/orange/share && sudo nautilus /home/orange/share"
-Icon=system-file-manager
-Terminal=false

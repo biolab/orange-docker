@@ -1,93 +1,62 @@
-# Orange docker #
+# Containerized application Orange
+A Docker image that sets up a VNC server accessible via a web browser, allowing remote desktop access. It supports password protection, volume mounting for data persistence, and options for multiple simultaneous connections.
 
-Docker image for Orange Data Mining Suite.
-
-You can run Orange in docker containers on server infrastructure. Key benefits of this approach are:
-- Orange can have access to a greater amount of memory and processing power
-- It can be accessed from anywhere and can be run for an extended time without interruptions
-- Existing workflows can be shared with other people in real-time
-
-We use the following technologies:
-- Docker containers
-- Remote access via RDP, VNC and SSH protocols.
-- Apache Guacamole as HTML front-end
-
-### Setup guide ###
-
-First, ensure that you have a docker installed. The following guide 
-contains instructions for ubuntu platform: [instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce).
-
-If you want to deploy a new system, follow this guide to create a basic 
-guacamole setup using official dockers: [setup guide](https://www.linode.com/docs/guides/installing-apache-guacamole-through-docker/)
-
-After that, create a common network and attach each of the 
-instances to the network.
-
-```sh
-    docker network create guacamole
-    docker network connect guacamole example-mysql
-    docker network connect guacamole example-guacd
-    docker network connect guacamole example-guacamole
+# Setup example
+## Pulling the pre-built image from Github Container Registry
 ```
-
-### Start docker container ###
-
-When you have a working guacamole environment, you can use this command to spawn 
-additional Orange remote desktop instances. 
-
-You can use the same command multiple times to create multiple remote desktop environments. Note that the tag is the same as the hostname 
-in the web interface and needs to be unique.
-
-
-```sh
-    tag=orange1
-    docker run --name $tag --link example-guacd:guacd --network=guacamole -d orangedm/orange-docker-vnc:v1.0
+docker run --init -d --rm -p 6080:6080 -v {path_to_data_folder_on_host}:/data -e SHARED=0 ghcr.io/biolab/orange-docker:latest
 ```
+A downside to this approach is that the VNC server's password is created at build time and is set to default value `pass`. To use a different password, build the image yourself or fork this repository, set a new repository secret `NOVNC_PASSWORD` in `https://github.com/{repository_owner}/orange-docker/settings/secrets/actions` and generate a new image through Github Actions. Your image will be available on `ghcr.io/{repository_owner}/orange-docker`.
 
-Change the user password and VNC password within the container. 
-```sh
-    docker exec -it $tag /bin/bash
-    passwd orange  # changes orange user password
-    vncpasswd  # changes password for vnc
+It is also possible to customize combinations of package versions installed inside container by setting these repository variables (if they are not set it will simply default to versions specified in the Dockerfile):
+- `MINIFORGE_VERSION`
+- `TIGERVNC_VERSION`
+- `FLUXBOX_VERSION`
+- `UNZIP_VERSION`
+- `NOVNC_VERSION`
+- `ORANGE3_VERSION`
+- `PYTHON_VERSION`
+- `IMAGE_TAG`
+
+## Building the image yourself
+Store your password into an environment variable `NOVNC_PASSWORD`, which will be used to securely set the password of VNC server inside the container.
+
+**Replace "pass" with your password.**
 ```
+export NOVNC_PASSWORD=pass
+docker build --secret id=noVNC_password,env=NOVNC_PASSWORD -t orange-docker . 
+```
+```
+docker run --init -d --rm -p 6080:6080 -v {path_to_data_folder_on_host}:/data -e SHARED=0 orange-docker
+```
+## How to use
+Navigate to `https://localhost:6080/vnc.html` or `https://{host_ip}:6080/vnc.html`. Certificates for SSL/TLS encryption are currently self-signed, which means the browser will not allow connections by default, without you clicking through and accepting the warning pop-up.
 
-### Create connection ###
+![image](https://github.com/user-attachments/assets/57168a3c-bc01-4087-ad78-837e6ec3aa47)
+![image](https://github.com/user-attachments/assets/19eb3c4b-101e-43fa-9db1-bb37c4c2693c)
 
-Admins must create new connections for each Orange image via Settings -> Connections menu. 
-Guacamole website contains [a detailed guide on Guacamole administration](https://guacamole.apache.org/doc/gug/administration.html).
 
-In the browser, open localhost:<port>/guacamole, where the port is the value that you see PORTS section for guacamole container if you run  `docker ps`. 
+Once on the noVNC homepage, click connect and input your password. On the left are also some useful settings, such as "Remote Resizing" which makes the resolution of VNC server match your browser.
 
-The first time you log in with the default user `guacadmin` and password `guacadmin`. Do not forget to change it.
+![image](https://github.com/user-attachments/assets/fdf356fd-d35a-4318-9897-d339f83822bc)
 
-Open Settings > Connections, and click on New connection.
+### Options
+**Port:**
 
-In general, at least these values need to be configured:
-- `Edit connections -> name`: Can be anything, this will be shown on the home dashboard
-- `Edit connections -> name`: ROOT
-- `Edit connections -> protocol`: VNC
-- `Concurrency limits (both)`: Default is 1, set this to higher value if you want to share connections with multiple users.
-- `Parameters -> Network -> hostname`: This equals to the $tag variable when creating instance or docker name. 
-- `Parameters -> Network -> port`: 5901
-- `Parameters -> Authentication -> Username`: orange
-- `Parameters -> Authentication -> Password`: <vnc password assinged in the previous section>
+`-p {host_port}:6080` maps host's port to container's port `6080`. To run multiple instances assign a unique `host_port` to each container. To access the container from outside network, set up port forwarding of `host_port` on your router.
 
-When a new connection is created, check that it is working by clicking on it from the guacamole home screen.
+**Shared volume:**
 
-### Sharing screen ###
+`-v {path_to_data_folder_on_host}:/data` creates a shared volume between host and container. Explained in more detail in the following section.
 
-Go to `Settings -> Connections`.
+**Multiple connections:**
 
-Click on the [+] sign left of the desktop you want to share with one-time 
-link. If there exists a Sharing profile for this desktop, you can skip this 
-step. Otherwise, click on the `New sharing profile`. Name the profile and check `Read only` if you want to restrict users to view only experience.
+The VNC server allows only one connection at a time by default. To allow multiple simultaneous connections pass `-e SHARED=1` to `docker run`.
 
-Click Save. Now share button should be available from the Ctrl+Alt+Shift menu (when connected to the virtual machine).
+# Importing and exporting data
+The `docker run` command in the example creates a volume mount between data stored in your specified path `{path_to_data_folder_on_host}` and `/data/` inside the container. Data stored inside the container's `/data/` folder will persist on host folder after stopping the container.
 
-### Stop instances ###
-
-Use this command to stop the remote desktop instance.
-
-```sh
-    docker stop orange1
+If exporting resulting data to host is not needed and you wish to burn import data into the image at build, you can do so by creating a `data/` folder in the same folder as `Dockerfile` and using `docker run` command without creating a volume mount.
+```
+docker run --init -d --rm -p 6080:6080 orange-docker
 ```

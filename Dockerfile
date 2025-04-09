@@ -1,58 +1,66 @@
-FROM consol/ubuntu-xfce-vnc
+ARG MINIFORGE_VERSION=24.11.3-0
 
-USER root
+FROM condaforge/miniforge3:${MINIFORGE_VERSION}
 
-# conda install requires bzip
-RUN apt-get update && apt-get install -y python3-pip python3-dev python-virtualenv bzip2 g++ git sudo 
-RUN apt-get install -y xfce4-terminal software-properties-common python-numpy
+ARG TIGERVNC_VERSION=1.10.1+dfsg-3ubuntu0.20.04.1
+ARG FLUXBOX_VERSION=1.3.5-2build2
+ARG UNZIP_VERSION=6.0-25ubuntu1.1
+ARG NOVNC_VERSION=1.5.0
+ARG ORANGE3_VERSION=3.38.1
+ARG PYTHON_VERSION=3.10
+ARG IMAGE_TAG=1.0.0
+ARG BUILD_DATE_TIME
 
-# browsers
-RUN rm /usr/share/xfce4/helpers/debian-sensible-browser.desktop
-RUN add-apt-repository --yes ppa:mozillateam/ppa && apt-get update
-RUN apt-get remove -y --purge firefox && apt-get install -y firefox-esr
+WORKDIR /app
 
-ENV USER orange
-ENV PASSWORD orange
-ENV HOME /home/${USER}
-ENV CONDA_DIR /home/${USER}/.conda
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN useradd -m -s /bin/bash ${USER}
-RUN echo "${USER}:${PASSWORD}" | chpasswd
-RUN gpasswd -a ${USER} sudo
+# install TigerVNC server and fluxbox
+RUN apt-get update && apt-get install -y \
+    tigervnc-standalone-server=${TIGERVNC_VERSION} \
+    fluxbox=${FLUXBOX_VERSION} \
+    unzip=${UNZIP_VERSION} \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-USER orange
-WORKDIR ${HOME}
+# install noVNC from github since version in package manager is outdated or requires snap
+RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.zip && \
+    unzip v${NOVNC_VERSION}.zip -d /usr/share && \
+    mv -T /usr/share/noVNC-${NOVNC_VERSION} /usr/share/novnc && \
+    rm v${NOVNC_VERSION}.zip && \
+    apt-get purge -y unzip && apt-get autoremove -y
 
-RUN wget -q -O anaconda.sh https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
-RUN bash anaconda.sh -b -p ~/.conda && rm anaconda.sh
-RUN $CONDA_DIR/bin/conda create python=3.8 --name orange3
-RUN bash -c "source $CONDA_DIR/bin/activate orange3 && $CONDA_DIR/bin/conda install pyqt=5.12.* orange3 Orange3-Text Orange3-ImageAnalytics -c conda-forge"
-RUN echo 'export PATH=~/.conda/bin:$PATH' >> /home/orange/.bashrc
-RUN bash -c "source $CONDA_DIR/bin/activate orange3"
+ENV PATH=/usr/share/novnc/utils:$PATH
 
-ADD ./icons/orange.png /usr/share/backgrounds/images/orange.png
-ADD ./icons/orange.png .conda/share/orange3/orange.png
-ADD ./orange/orange-canvas.desktop Desktop/orange-canvas.desktop
-ADD ./config/xfce4 .config/xfce4
-ADD ./install/chromium-wrapper install/chromium-wrapper
+# install Orange
+RUN conda create python=${PYTHON_VERSION} --yes --name orange3 && \
+    conda init bash && \
+    bash -c "source activate base && conda activate orange3" && \
+    conda install orange3=${ORANGE3_VERSION} "catboost=*=*cpu*" --yes && conda clean -afy
+    
+ENV PATH=/opt/conda/envs/orange3/bin:$PATH
 
-USER root
-RUN chown -R orange:orange .config Desktop install
+ENV DISPLAY=:0
+EXPOSE 6080
+ENV SHARED=0
 
-ADD ./install/add-geometry.sh /dockerstartup/add-resolution.sh
-RUN chmod a+x /dockerstartup/add-resolution.sh
+# copy the data if it exists
+COPY ./dat[a]/ /data/
 
-USER orange
+# copy the init script
+COPY --chmod=700 init.sh ./init.sh
 
-# Prepare for external settings volume
-RUN mkdir .config/biolab.si
+# create the password file for VNC server
+RUN --mount=type=secret,id=noVNC_password \
+    mkdir -p ~/.vnc && \
+    cat /run/secrets/noVNC_password | vncpasswd -f > ~/.vnc/passwd && \
+    chmod 600 ~/.vnc/passwd
 
-ENV VNC_COL_DEPTH 24
-ENV VNC_RESOLUTION 1920x1080
-ENV VNC_PW orange
+LABEL org.opencontainers.image.title="OrangeDocker - VNC Server Docker Image" \
+    org.opencontainers.image.description="A Docker image that sets up a VNC server accessible via a web browser, allowing remote desktop access. It supports password protection, volume mounting for data persistence, and options for multiple simultaneous connections." \
+    org.opencontainers.image.authors="Bioinformatics Laboratory, FRI UL; Benjamin Škiljan; Gašper Žitko" \
+    org.opencontainers.image.version=${IMAGE_TAG} \
+    org.opencontainers.image.created=${BUILD_DATE_TIME} \
+    org.opencontainers.image.source="https://github.com/biolab/orange-docker"
 
-RUN cp /headless/wm_startup.sh ${HOME}
-
-
-ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
-CMD ["--tail-log"]
+# run the application
+ENTRYPOINT ["./init.sh"]
